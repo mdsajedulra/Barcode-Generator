@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getProducts } from "../api/getProduct";
 import { BarcodeGenerator } from "./BarcodeGenerator";
-
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
-
+import { useParams } from "react-router-dom";
 
 function Barcode() {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -13,57 +11,51 @@ function Barcode() {
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pageNumber, setPageNumber] = useState(1);
 
+  const { categoryId } = useParams();
+
+  // 🟢 Category বা Page পরিবর্তন হলে data load হবে
   useEffect(() => {
-    getProducts(2)
+    setLoading(true);
+    getProducts(pageNumber, Number(categoryId))
       .then((data) => setProducts(data))
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      .finally(() => setLoading(false));
+  }, [pageNumber, categoryId]);
 
-  console.log(products);
-
-
-  const [number, setNumber] = useState('');
-
-  const handleNameChange = (event:any) => {
-    setNumber(event.target.value);
-      getProducts(Number(event.target.value))
-      .then((data) => setProducts(data))
-      .finally(() => {
-        setLoading(false);
-      });
+  const handlePageChange = (event: any) => {
+    setPageNumber(Number(event.target.value));
   };
-
-  const handleSubmit = (event:any) => {
-    event.preventDefault(); // Prevent default form submission
-    console.log('Submitted Name:', name);
-    // You can now use the 'name' value for further processing
-  };
-
 
   if (loading) {
     return <p>Loading Product ..........</p>;
   }
+
   return (
     <>
-      <h2>BarCode Generator</h2>
-      <button className="text-white" onClick={reactToPrintFn}>
-        Print
-      </button>
-      <div></div>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Input Page Number
-          <input type="number" value={number} onChange={handleNameChange} />
+      <h2 className="text-lg font-bold mb-2">BarCode Generator</h2>
+
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+          onClick={reactToPrintFn}
+        >
+          Print
+        </button>
+
+        <label className="flex items-center gap-2 text-sm">
+          Page:
+          <input
+            type="number"
+            value={pageNumber}
+            onChange={handlePageChange}
+            className="border border-gray-300 px-2 py-1 rounded w-20"
+          />
         </label>
-        <button className="text-white" type="submit">Submit</button>
-        <p>Current Page Number: {number}</p>
-      </form>
-      <div className={`grid grid-cols-4`} ref={contentRef}>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2" ref={contentRef}>
         {products.map((p) => (
-          //   <li key={p.id}>{p.id}</li>
           <BarcodeGenerator key={p.id} barcode={p} />
         ))}
       </div>
