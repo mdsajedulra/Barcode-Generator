@@ -54,7 +54,7 @@ function Barcode() {
         </label>
       </div>
 
-      <div className="grid grid-cols-1 gap-2" ref={contentRef}>
+      <div className="grid grid-cols-1" ref={contentRef}>
         {products.map((p) => (
           <BarcodeGenerator key={p.id} barcode={p} />
         ))}
